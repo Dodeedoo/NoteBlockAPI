@@ -61,7 +61,11 @@ public class RadioSongPlayer extends SongPlayer {
 
 			float volume = (layer.getVolume() * (int) this.volume * (int) playerVolume * note.getVelocity()) / 100_00_00_00F;
 
-			channelMode.play(player, player.getEyeLocation(), song, layer, note, soundCategory, volume, !enable10Octave);
+			if (surround) {
+				channelMode.play(player, player.getEyeLocation(), song, layer, note, soundCategory, volume, !enable10Octave, surround);
+			}else{
+				channelMode.play(player, player.getEyeLocation(), song, layer, note, soundCategory, volume, !enable10Octave);
+			}
 		}
 	}
 

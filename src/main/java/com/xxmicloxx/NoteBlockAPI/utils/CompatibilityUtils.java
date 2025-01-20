@@ -65,9 +65,12 @@ public class CompatibilityUtils {
 		Method method = playSoundMethod.get(cacheKey);
 		Class worldorplayer;
 
-		if (method == null) {
+		if (method == null ||
+				(method.getDeclaringClass().getName().equals("org.bukkit.entity.Player") && surround) ||
+				(method.getDeclaringClass().getName().equals("org.bukkit.World") && !surround)) {
 			//determine whether sound is an enum (pre 1.21.3) or an interface (post 1.21.3)
 			Class<?> soundParameter = getSoundParameterClass(sound);
+
 			if (surround) {
 				worldorplayer = World.class;
 			}else{
@@ -85,6 +88,7 @@ public class CompatibilityUtils {
 
 			playSoundMethod.put(cacheKey, method);
 		}
+
 		return method;
 	}
 
@@ -241,9 +245,11 @@ public class CompatibilityUtils {
 			if (isSoundCategoryCompatible()) {
 				Method method = getPlaySoundMethod(sound.getClass(), true, false);
 				Enum<?> soundCategoryEnum = Enum.valueOf(getSoundCategoryClass(), category.name());
+				//Bukkit.broadcastMessage(method.getDeclaringClass().getName());
 				method.invoke(player, MathUtils.stereoPan(location, distance), sound, soundCategoryEnum, volume, pitch);
 			} else {
 				Method method = getPlaySoundMethod(sound.getClass(), false, false);
+				//Bukkit.broadcastMessage(method.getDeclaringClass().getName());
 				method.invoke(player, MathUtils.stereoPan(location, distance), sound, volume, pitch);
 			}
 		} catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException | InvocationTargetException e) {
@@ -258,10 +264,12 @@ public class CompatibilityUtils {
 				if (isSoundCategoryCompatible()) {
 					Method method = getPlaySoundMethod(sound.getClass(), true, true);
 					Enum<?> soundCategoryEnum = Enum.valueOf(getSoundCategoryClass(), category.name());
+					//Bukkit.broadcastMessage(method.getDeclaringClass().getName());
 					method.invoke(player.getWorld(), MathUtils.stereoPan(location, distance), sound, soundCategoryEnum, volume, pitch);
 				} else {
 					Method method = getPlaySoundMethod(sound.getClass(), false, true);
 					method.invoke(player.getWorld(), MathUtils.stereoPan(location, distance), sound, volume, pitch);
+					//Bukkit.broadcastMessage(method.getDeclaringClass().getName());
 				}
 			} catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException |
 					 InvocationTargetException e) {
