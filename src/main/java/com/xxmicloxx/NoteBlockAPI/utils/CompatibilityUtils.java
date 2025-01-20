@@ -5,10 +5,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 
 import com.xxmicloxx.NoteBlockAPI.model.CustomInstrument;
@@ -72,10 +69,10 @@ public class CompatibilityUtils {
 			Class<?> soundParameter = getSoundParameterClass(sound);
 
 			if (soundCategory) {
-				method = Player.class.getMethod("playSound", Location.class, soundParameter,
+				method = World.class.getMethod("playSound", Location.class, soundParameter,
 						getSoundCategoryClass(), float.class, float.class);
 			} else {
-				method = Player.class.getMethod("playSound", Location.class, soundParameter,
+				method = World.class.getMethod("playSound", Location.class, soundParameter,
 						float.class, float.class);
 			}
 
