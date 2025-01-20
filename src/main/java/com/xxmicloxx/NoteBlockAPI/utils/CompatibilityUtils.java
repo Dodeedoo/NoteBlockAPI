@@ -59,20 +59,27 @@ public class CompatibilityUtils {
 		return soundCategoryClass;
 	}
 
-	private static Method getPlaySoundMethod(Class<?> sound, boolean soundCategory)
+	private static Method getPlaySoundMethod(Class<?> sound, boolean soundCategory, boolean surround)
 			throws ClassNotFoundException, NoSuchMethodException {
 		String cacheKey = sound.getName() + soundCategory;
 		Method method = playSoundMethod.get(cacheKey);
+		Class worldorplayer;
 
 		if (method == null) {
 			//determine whether sound is an enum (pre 1.21.3) or an interface (post 1.21.3)
 			Class<?> soundParameter = getSoundParameterClass(sound);
+			if (surround) {
+				worldorplayer = World.class;
+			}else{
+				worldorplayer = Player.class;
+			}
 
 			if (soundCategory) {
-				method = World.class.getMethod("playSound", Location.class, soundParameter,
+
+				method = worldorplayer.getMethod("playSound", Location.class, soundParameter,
 						getSoundCategoryClass(), float.class, float.class);
 			} else {
-				method = World.class.getMethod("playSound", Location.class, soundParameter,
+				method = worldorplayer.getMethod("playSound", Location.class, soundParameter,
 						float.class, float.class);
 			}
 
@@ -190,25 +197,78 @@ public class CompatibilityUtils {
 	 * @param volume
 	 * @param pitch
 	 * @param distance
+	 * @param surround
+	 */
+	public static void playSound(Player player, Location location, String sound,
+								 SoundCategory category, float volume, float pitch, float distance, boolean surround) {
+		playSoundUniversal(player, location, sound, category, volume, pitch, distance, surround);
+	}
+
+	/**
+	 * Plays a sound using NMS &amp; reflection
+	 * @param player
+	 * @param location
+	 * @param sound
+	 * @param category
+	 * @param volume
+	 * @param pitch
+	 * @param distance
 	 */
 	public static void playSound(Player player, Location location, Sound sound,
 								 SoundCategory category, float volume, float pitch, float distance) {
 		playSoundUniversal(player, location, sound, category, volume, pitch, distance);
 	}
 
+	/**
+	 * Plays a sound using NMS &amp; reflection
+	 * @param player
+	 * @param location
+	 * @param sound
+	 * @param category
+	 * @param volume
+	 * @param pitch
+	 * @param distance
+	 * @param surround
+	 */
+	public static void playSound(Player player, Location location, Sound sound,
+								 SoundCategory category, float volume, float pitch, float distance, boolean surround) {
+		playSoundUniversal(player, location, sound, category, volume, pitch, distance, surround);
+	}
+
 	private static void playSoundUniversal(Player player, Location location, Object sound,
 								 SoundCategory category, float volume, float pitch, float distance) {
 		try {
 			if (isSoundCategoryCompatible()) {
-				Method method = getPlaySoundMethod(sound.getClass(), true);
+				Method method = getPlaySoundMethod(sound.getClass(), true, false);
 				Enum<?> soundCategoryEnum = Enum.valueOf(getSoundCategoryClass(), category.name());
 				method.invoke(player, MathUtils.stereoPan(location, distance), sound, soundCategoryEnum, volume, pitch);
 			} else {
-				Method method = getPlaySoundMethod(sound.getClass(), false);
+				Method method = getPlaySoundMethod(sound.getClass(), false, false);
 				method.invoke(player, MathUtils.stereoPan(location, distance), sound, volume, pitch);
 			}
 		} catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException | InvocationTargetException e) {
 			e.printStackTrace();
+		}
+	}
+
+	private static void playSoundUniversal(Player player, Location location, Object sound,
+										   SoundCategory category, float volume, float pitch, float distance, boolean surround) {
+		if (surround) {
+			try {
+				if (isSoundCategoryCompatible()) {
+					Method method = getPlaySoundMethod(sound.getClass(), true, true);
+					Enum<?> soundCategoryEnum = Enum.valueOf(getSoundCategoryClass(), category.name());
+					method.invoke(player.getWorld(), MathUtils.stereoPan(location, distance), sound, soundCategoryEnum, volume, pitch);
+				} else {
+					Method method = getPlaySoundMethod(sound.getClass(), false, true);
+					method.invoke(player.getWorld(), MathUtils.stereoPan(location, distance), sound, volume, pitch);
+				}
+			} catch (NoSuchMethodException | ClassNotFoundException | IllegalAccessException |
+					 InvocationTargetException e) {
+				e.printStackTrace();
+			}
+		}else{
+			playSoundUniversal(player, location, sound, category, volume, pitch, distance);
 		}
 	}
 

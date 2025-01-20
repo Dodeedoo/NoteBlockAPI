@@ -66,6 +66,40 @@ public class MonoStereoMode extends ChannelMode{
         }
     }
 
+    @Override
+    public void play(Player player, Location location, Song song, Layer layer, Note note, SoundCategory soundCategory, float volume, boolean doTranspose, boolean surround) {
+        float pitch;
+        if(doTranspose)
+            pitch = NoteUtils.getPitchTransposed(note);
+        else
+            pitch = NoteUtils.getPitchInOctave(note);
+
+        if (InstrumentUtils.isCustomInstrument(note.getInstrument())) {
+            CustomInstrument instrument = song.getCustomInstruments()[note.getInstrument() - InstrumentUtils.getCustomInstrumentFirstIndex()];
+
+            if (!doTranspose){
+                CompatibilityUtils.playSound(player, location, InstrumentUtils.warpNameOutOfRange(instrument.getSoundFileName(), note.getKey(), note.getPitch()), soundCategory, volume, pitch, distance, surround);
+                CompatibilityUtils.playSound(player, location, InstrumentUtils.warpNameOutOfRange(instrument.getSoundFileName(), note.getKey(), note.getPitch()), soundCategory, volume, pitch, -distance, surround);
+            } else {
+                if (instrument.getSound() != null) {
+                    CompatibilityUtils.playSound(player, location, instrument.getSound(), soundCategory, volume, pitch, distance, surround);
+                    CompatibilityUtils.playSound(player, location, instrument.getSound(), soundCategory, volume, pitch, -distance, surround);
+                } else {
+                    CompatibilityUtils.playSound(player, location, instrument.getSoundFileName(), soundCategory, volume, pitch, distance, surround);
+                    CompatibilityUtils.playSound(player, location, instrument.getSoundFileName(), soundCategory, volume, pitch, -distance, surround);
+                }
+            }
+        } else {
+            if (NoteUtils.isOutOfRange(note.getKey(), note.getPitch()) && !doTranspose) {
+                CompatibilityUtils.playSound(player, location, InstrumentUtils.warpNameOutOfRange(note.getInstrument(), note.getKey(), note.getPitch()), soundCategory, volume, pitch, distance, surround);
+                CompatibilityUtils.playSound(player, location, InstrumentUtils.warpNameOutOfRange(note.getInstrument(), note.getKey(), note.getPitch()), soundCategory, volume, pitch, -distance, surround);
+            } else {
+                CompatibilityUtils.playSound(player, location, InstrumentUtils.getInstrument(note.getInstrument()), soundCategory, volume, pitch, distance, surround);
+                CompatibilityUtils.playSound(player, location, InstrumentUtils.getInstrument(note.getInstrument()), soundCategory, volume, pitch, -distance, surround);
+            }
+        }
+    }
+
     /**
      * Returns distance of {@link Note} from {@link Player}'s head.
      * @return

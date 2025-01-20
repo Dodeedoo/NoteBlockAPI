@@ -25,6 +25,11 @@ public class RadioSongPlayer extends SongPlayer {
 		makeNewClone(com.xxmicloxx.NoteBlockAPI.RadioSongPlayer.class);
 	}
 
+	public RadioSongPlayer(Song song, boolean surround) {
+		super(song, SoundCategory.MASTER, false, surround);
+		makeNewClone(com.xxmicloxx.NoteBlockAPI.RadioSongPlayer.class);
+	}
+
 	public RadioSongPlayer(Song song, SoundCategory soundCategory) {
 		super(song, soundCategory);
 		makeNewClone(com.xxmicloxx.NoteBlockAPI.RadioSongPlayer.class);

@@ -29,6 +29,7 @@ public abstract class SongPlayer {
 
 	protected boolean playing = false;
 	protected boolean fading = false;
+	protected boolean surround = false;
 	protected short tick = -1;
 	protected Map<UUID, Boolean> playerList = new ConcurrentHashMap<UUID, Boolean>();
 
@@ -63,8 +64,8 @@ public abstract class SongPlayer {
 		this(new Playlist(song), soundCategory);
 	}
 
-	public SongPlayer(Song song, SoundCategory soundCategory, boolean random) {
-		this(new Playlist(song), soundCategory, random);
+	public SongPlayer(Song song, SoundCategory soundCategory, boolean random, boolean surround) {
+		this(new Playlist(song), soundCategory, random, surround);
 	}
 	
 	public SongPlayer(Playlist playlist){
@@ -72,13 +73,14 @@ public abstract class SongPlayer {
 	}
 
 	public SongPlayer(Playlist playlist, SoundCategory soundCategory){
-		this(playlist, soundCategory, false);
+		this(playlist, soundCategory, false, false);
 	}
 
-	public SongPlayer(Playlist playlist, SoundCategory soundCategory, boolean random){
+	public SongPlayer(Playlist playlist, SoundCategory soundCategory, boolean random, boolean surround){
 		this.playlist = playlist;
 		this.random = random;
 		this.soundCategory = soundCategory;
+		this.surround = surround;
 		plugin = NoteBlockAPI.getAPI();
 		
 		fadeIn = new Fade(FadeType.NONE, 60);
@@ -137,7 +139,7 @@ public abstract class SongPlayer {
 		plugin = NoteBlockAPI.getAPI();
 	}
 
-	void update(String key, Object value){
+    void update(String key, Object value){
 		switch (key){
 			case "playing":
 				playing = (boolean) value;

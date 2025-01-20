@@ -81,6 +81,46 @@ public class StereoMode extends ChannelMode {
         }
     }
 
+    @Override
+    public void play(Player player, Location location, Song song, Layer layer, Note note, SoundCategory soundCategory, float volume, boolean doTranspose, boolean surround) {
+        if (!song.isStereo() && fallbackChannelMode != null){
+            fallbackChannelMode.play(player, location, song, layer, note, soundCategory, volume, doTranspose);
+            return;
+        }
+
+        float pitch;
+        if(doTranspose)
+            pitch = NoteUtils.getPitchTransposed(note);
+        else
+            pitch = NoteUtils.getPitchInOctave(note);
+
+        float distance = 0;
+        if (layer.getPanning() == 100){
+            distance = ((note.getPanning() - 100) / 100f) * maxDistance;
+        } else {
+            distance = ((layer.getPanning() - 100 + note.getPanning() - 100) / 200f) * maxDistance;
+        }
+        if (InstrumentUtils.isCustomInstrument(note.getInstrument())) {
+            CustomInstrument instrument = song.getCustomInstruments()[note.getInstrument() - InstrumentUtils.getCustomInstrumentFirstIndex()];
+
+            if (!doTranspose){
+                CompatibilityUtils.playSound(player, location, InstrumentUtils.warpNameOutOfRange(instrument.getSoundFileName(), note.getKey(), note.getPitch()), soundCategory, volume, pitch, distance, surround);
+            } else {
+                if (instrument.getSound() != null) {
+                    CompatibilityUtils.playSound(player, location, instrument.getSound(), soundCategory, volume, pitch, distance, surround);
+                } else {
+                    CompatibilityUtils.playSound(player, location, instrument.getSoundFileName(), soundCategory, volume, pitch, distance, surround);
+                }
+            }
+        } else {
+            if (NoteUtils.isOutOfRange(note.getKey(), note.getPitch()) && !doTranspose) {
+                CompatibilityUtils.playSound(player, location, InstrumentUtils.warpNameOutOfRange(note.getInstrument(), note.getKey(), note.getPitch()), soundCategory, volume, pitch, distance, surround);
+            } else {
+                CompatibilityUtils.playSound(player, location, InstrumentUtils.getInstrument(note.getInstrument()), soundCategory, volume, pitch, distance, surround);
+            }
+        }
+    }
+
     /**
      * Returns scale of panning in blocks. {@link Note} with maximum left panning will be played this distance from {@link Player}'s head on left side.
      * @return
